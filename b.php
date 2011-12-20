@@ -106,15 +106,15 @@ if(isset($_POST['submit'])){//POST ACTIONS
 	create_index(D_POSTDATE,D_POSTDATE);
 }
 //BB STUFF
-function parsebb($text){
-	$res = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1<\/b>',$text);
-	$res = preg_replace('/\[center\](.+?)\[\/center\]/is','<center>\1<\/center>',$res);
-	$res = preg_replace('/\[i\](.+?)\[\/i\]/is','<i>\1<\/i>',$res);
-	$res = preg_replace('/\[img\](.+?)\[\/img\]/is','<img src="\1" alt="\1" />',$res);
-	$res = preg_replace('/\[url\=(.+?)\](.+?)\[\/url\]/is','<a href="\1">\2</a>',$res);
-	$res = preg_replace('/\[url\](.+?)\[\/url\]/is','<a href="\1">\1</a>',$res);
-	$res = preg_replace('/\[code\](.+?)\[\/code\]/is','<pre>\1</pre>',$res);
-	return $res;
+function parsebb($t){
+	$t = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1<\/b>',$t);
+	$t = preg_replace('/\[center\](.+?)\[\/center\]/is','<center>\1<\/center>',$t);
+	$t = preg_replace('/\[i\](.+?)\[\/i\]/is','<i>\1<\/i>',$t);
+	$t = preg_replace('/\[img\](.+?)\[\/img\]/is','<img src="\1" alt="\1" />',$t);
+	$t = preg_replace('/\[url\=(.+?)\](.+?)\[\/url\]/is','<a href="\1">\2</a>',$t);
+	$t = preg_replace('/\[url\](.+?)\[\/url\]/is','<a href="\1">\1</a>',$t);
+	$t = preg_replace('/\[code\](.+?)\[\/code\]/is','<pre>\1</pre>',$t);
+	return $t;
 }
 function stripbb($text)
 {
