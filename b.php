@@ -105,6 +105,22 @@ if(isset($_POST['submit'])){//POST ACTIONS
 	set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
 	create_index(D_POSTDATE,D_POSTDATE);
 }
+//BB STUFF
+function parsebb($text){
+	$res = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1<\/b>',$text);
+	$res = preg_replace('/\[center\](.+?)\[\/center\]/is','<center>\1<\/center>',$res);
+	$res = preg_replace('/\[i\](.+?)\[\/i\]/is','<i>\1<\/i>',$res);
+	$res = preg_replace('/\[img\](.+?)\[\/img\]/is','<img src="\1" alt="\1" />',$res);
+	$res = preg_replace('/\[url\=(.+?)\](.+?)\[\/url\]/is','<a href="\1">\2</a>',$res);
+	$res = preg_replace('/\[url\](.+?)\[\/url\]/is','<a href="\1">\1</a>',$res);
+	$res = preg_replace('/\[code\](.+?)\[\/code\]/is','<pre>\1</pre>',$res);
+	return $res;
+}
+function stripbb($text)
+{
+	return preg_replace('/\[.+?\]/','',$text);	
+}
+
 //BLOGGY STUFF
 echo tpl(T_HEADER);
 if(isset($_GET['edit'])){
@@ -117,7 +133,7 @@ if(isset($_GET['edit'])){
 $p=get_index(D_POSTDATE);
 uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
 foreach($p as $m){
-	echo tpl(T_POST,'POSTID',$m[KEY],'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',nl2br(get_kvp($m[KEY],D_POSTCONTENT)),'POSTDATE',date('d.m.Y',$m[VALUE]));
+	echo tpl(T_POST,'POSTID',$m[KEY],'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'POSTDATE',date('d.m.Y',$m[VALUE]));
 }
 echo tpl(T_FOOTER);
 echo memory_get_peak_usage()/1024;
