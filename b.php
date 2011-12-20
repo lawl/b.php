@@ -1,5 +1,7 @@
 <?php
 //CONSTANTS
+define('SITENAME','Yet another b.php blog');
+//ONLY CHANGE THESE IF YOU KNOW WHAT YOU'RE DOING
 define('DATAPATH','b/');
 define('KEY','key');
 define('VALUE','value');
@@ -7,45 +9,50 @@ define('B','__b');
 define('T_HEADER','template_header');
 define('T_FOOTER','template_footer');
 define('T_POST','template_post');
-define('T_ADDPOST','template_addpost');
+define('T_ADMIN','template_addpost');
 define('D_POSTTITLE','posttitle');
 define('D_POSTCONTENT','postcontent');
 define('D_POSTDATE','postdate');
 define('D_POSTID','postid');
 //INSTALL STUFF
-create_record(B);
-set_kvp(B,T_HEADER, <<< 'EOD'
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8" />
-<title>Testing HTML5!</title></head>
-<body>
+if(get_kvp(B,'firstuse')===false){
+	echo 'Configuring b.php... This might take a while.';
+	if(!record_exists(''))if(!mkdir(DATAPATH))die('Can not create database. Create directory "'.DATAPATH.'" and make it writeable.');
+	create_record(B);
+	create_index(D_POSTDATE,D_POSTDATE);
+	set_kvp(B,T_HEADER, <<< 'EOD'
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta charset="utf-8" />
+	<title>{{SITENAME}}</title></head>
+	<body>
 EOD
-);
-set_kvp(B,T_FOOTER, <<< 'EOD'
-</body>
-</html>
+	);
+	set_kvp(B,T_FOOTER, <<< 'EOD'
+	</body>
+	</html>
 EOD
-);
-set_kvp(B,T_POST, <<< 'EOD'
-<hr />
-<b>{{POSTTITLE}}</b> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a><br />
-{{POSTCONTENT}}
-<hr />
+	);
+	set_kvp(B,T_POST, <<< 'EOD'
+	<hr />
+	<b>{{POSTTITLE}}</b> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a><br />
+	{{POSTCONTENT}}
+	<hr />
 EOD
-);
-set_kvp(B,T_ADDPOST, <<< 'EOD'
-<div>
-<form action="" method="post">
-<input name="posttitle" type="text" value="{{POSTTITLE}}"><br />
-<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
-<input name="postid" type="hidden" value="{{POSTID}}" />
-<input name="submit" type="submit" value="commit" />
-</form>
-</div>
+	);
+	set_kvp(B,T_ADMIN, <<< 'EOD'
+	<div>
+	<form action="" method="post">
+	<input name="posttitle" type="text" value="{{POSTTITLE}}"><br />
+	<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
+	<input name="postid" type="hidden" value="{{POSTID}}" />
+	<input name="submitpost" type="submit" value="commit" />
+	</form>
 EOD
-);
+	);
+	set_kvp(B,'firstuse',1);
+}
 //DB STUFF
 function create_record($r){
 	$r=sanitize_key($r);
@@ -91,8 +98,11 @@ function tpl(){
 	}
 	return $t;
 }
+function tpl_set($t,$w,$r){
+	return str_replace('{{'.$w.'}}',$r,$t);	
+}
 //DO STUFF
-if(isset($_POST['submit'])){//POST ACTIONS
+if(isset($_POST['submitpost'])){//POST ACTIONS
 	$r=0;
 	if(empty($_POST[D_POSTID])){
 		$r=create_record(uniqid());
@@ -105,6 +115,7 @@ if(isset($_POST['submit'])){//POST ACTIONS
 	set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
 	create_index(D_POSTDATE,D_POSTDATE);
 }
+if(isset($_GET['rbindex']))create_index(D_POSTDATE,D_POSTDATE);
 //BB STUFF
 function parsebb($t){
 	$t = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1<\/b>',$t);
@@ -116,20 +127,17 @@ function parsebb($t){
 	$t = preg_replace('/\[code\](.+?)\[\/code\]/is','<pre>\1</pre>',$t);
 	return $t;
 }
-function stripbb($text)
-{
-	return preg_replace('/\[.+?\]/','',$text);	
-}
-
 //BLOGGY STUFF
-echo tpl(T_HEADER);
+echo tpl(T_HEADER,'SITENAME',SITENAME);
 if(isset($_GET['edit'])){
 	$id=sanitize_key($_GET['edit']);
 	if(!record_exists($id))die("dum");
-	echo tpl(T_ADDPOST,'POSTTITLE',get_kvp($id,D_POSTTITLE),'POSTCONTENT',get_kvp($id,D_POSTCONTENT),'POSTID',$id);
+	$tpl=tpl(T_ADMIN,'POSTTITLE',get_kvp($id,D_POSTTITLE),'POSTCONTENT',get_kvp($id,D_POSTCONTENT),'POSTID',$id);
 }else{
-	echo tpl(T_ADDPOST,'POSTTITLE','','POSTCONTENT','','POSTID','');
+	$tpl=tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','');
 }
+echo tpl_set($tpl,'SITENAME',SITENAME);
+
 $p=get_index(D_POSTDATE);
 uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
 foreach($p as $m){
