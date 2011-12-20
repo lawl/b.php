@@ -11,6 +11,7 @@ define('T_ADDPOST','template_addpost');
 define('D_POSTTITLE','posttitle');
 define('D_POSTCONTENT','postcontent');
 define('D_POSTDATE','postdate');
+define('D_POSTID','postid');
 //INSTALL STUFF
 create_record(B);
 set_kvp(B,T_HEADER, <<< 'EOD'
@@ -29,7 +30,7 @@ EOD
 );
 set_kvp(B,T_POST, <<< 'EOD'
 <hr />
-<b>{{POSTTITLE}}</b> <i>{{POSTDATE}}</i><br />
+<b>{{POSTTITLE}}</b> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a><br />
 {{POSTCONTENT}}
 <hr />
 EOD
@@ -48,7 +49,7 @@ EOD
 //DB STUFF
 function create_record($r){
 	$r=sanitize_key($r);
-	if(!record_exists(DATAPATH.$r))mkdir(DATAPATH.$r);
+	if(!record_exists($r))mkdir(DATAPATH.$r);
 	return $r;
 }
 function set_kvp($r,$k,$v){
@@ -59,7 +60,7 @@ function get_kvp($r,$k){
 	return file_exists($p)?file_get_contents($p):false;
 }
 function record_exists($p){
-	return file_exists($p)&&is_dir($p);
+	return file_exists(DATAPATH.$p)&&is_dir(DATAPATH.$p);
 }
 function sanitize_key($k){
 	return preg_replace('/[^A-Za-z0-9_]/','',$k);
@@ -92,22 +93,31 @@ function tpl(){
 }
 //DO STUFF
 if(isset($_POST['submit'])){//POST ACTIONS
-	if(empty($_POST['postid'])){
+	$r=0;
+	if(empty($_POST[D_POSTID])){
 		$r=create_record(uniqid());
-		set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
-		set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
 		set_kvp($r,D_POSTDATE,time());
+	}else{
+		$r=sanitize_key($_POST[D_POSTID]);
+		if(!record_exists($r))die("dum");
 	}
-	
+	set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
+	set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
 	create_index(D_POSTDATE,D_POSTDATE);
 }
 //BLOGGY STUFF
 echo tpl(T_HEADER);
-echo tpl(T_ADDPOST,'POSTTITLE','','POSTCONTENT','','POSTID','');
-$dum=get_index(D_POSTDATE);
-uasort($dum,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
-foreach($dum as $m){
-	echo tpl(T_POST,'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',get_kvp($m[KEY],D_POSTCONTENT),'POSTDATE',date('d.m.Y',$m[VALUE]));
+if(isset($_GET['edit'])){
+	$id=sanitize_key($_GET['edit']);
+	if(!record_exists($id))die("dum");
+	echo tpl(T_ADDPOST,'POSTTITLE',get_kvp($id,D_POSTTITLE),'POSTCONTENT',get_kvp($id,D_POSTCONTENT),'POSTID',$id);
+}else{
+	echo tpl(T_ADDPOST,'POSTTITLE','','POSTCONTENT','','POSTID','');
+}
+$p=get_index(D_POSTDATE);
+uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
+foreach($p as $m){
+	echo tpl(T_POST,'POSTID',$m[KEY],'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',nl2br(get_kvp($m[KEY],D_POSTCONTENT)),'POSTDATE',date('d.m.Y',$m[VALUE]));
 }
 echo tpl(T_FOOTER);
 echo memory_get_peak_usage()/1024;
