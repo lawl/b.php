@@ -36,7 +36,7 @@ EOD
 	);
 	set_kvp(B,T_POST, <<< 'EOD'
 	<hr />
-	<b>{{POSTTITLE}}</b> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a><br />
+	<b>{{POSTTITLE}}</b> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a> <a href="?delete={{POSTID}}">delete</a><br />
 	{{POSTCONTENT}}
 	<hr />
 EOD
@@ -68,6 +68,19 @@ function get_kvp($r,$k){
 }
 function record_exists($p){
 	return file_exists(DATAPATH.$p)&&is_dir(DATAPATH.$p);
+}
+function record_delete($r){
+	$r=sanitize_key($r);
+	if(record_exists($r)){
+		$h=opendir(DATAPATH.$r);
+		for($i=0;($e=readdir($h))!==false;$i++){
+			if ($e!='.'&&$e!='..'){
+				unlink(DATAPATH.$r.'/'.$e);
+			}
+		}
+		closedir($h);
+		rmdir(DATAPATH.$r);
+	}
 }
 function sanitize_key($k){
 	return preg_replace('/[^A-Za-z0-9_]/','',$k);
@@ -101,7 +114,7 @@ function tpl(){
 function tpl_set($t,$w,$r){
 	return str_replace('{{'.$w.'}}',$r,$t);	
 }
-//DO STUFF
+//ADMIN STUFF
 if(isset($_POST['submitpost'])){//POST ACTIONS
 	$r=0;
 	if(empty($_POST[D_POSTID])){
@@ -113,6 +126,10 @@ if(isset($_POST['submitpost'])){//POST ACTIONS
 	}
 	set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
 	set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
+	create_index(D_POSTDATE,D_POSTDATE);
+}
+if(isset($_GET['delete'])){
+	record_delete($_GET['delete']);
 	create_index(D_POSTDATE,D_POSTDATE);
 }
 if(isset($_GET['rbindex']))create_index(D_POSTDATE,D_POSTDATE);
