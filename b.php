@@ -1,6 +1,7 @@
 <?php
 //CONFIG
 define('SITENAME','Yet another b.php blog');
+define('PAGEHOME','http://localhost/b/b.php');
 define('POSTSPERPAGE',5);
 define('USERNAME','user');
 define('PASSWORD','pass');
@@ -17,6 +18,9 @@ define('T_CMNTFRM','template_commentform');
 define('T_CMNT','template_comment');
 define('T_FAIL','template_fail');
 define('T_NAV','template_nav');
+define('RSS_FOOTER','rss_footer');
+define('RSS_HEADER','rss_header');
+define('RSS_ITEM','rss_item');
 define('T_ADMINLOGIN','template_login');
 define('D_POSTTITLE','posttitle');
 define('D_POSTCONTENT','postcontent');
@@ -35,7 +39,9 @@ if(get_kvp(B,'firstuse')===false){
 	<html>
 	<head>
 	<meta charset="utf-8" />
-	<title>{{SITENAME}}</title></head>
+	<title>{{SITENAME}}</title>
+	<link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
+	</head>
 	<body>
 EOD
 	);
@@ -97,6 +103,31 @@ EOD
 	);
 	set_kvp(B,T_NAV, <<< 'EOD'
 	<a href="?skip={{NEXT}}">next page</a> <a href="?skip={{PREV}}">previous page</a>
+EOD
+	);
+	set_kvp(B,RSS_HEADER, <<< 'EOD'
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0">
+	<channel>
+	<title>{{SITENAME}}</title>
+	<link>{{SITEURL}}</link>
+	<description>{{SITENAME}}</description>
+	<language>de</language>
+EOD
+	);
+	set_kvp(B,RSS_FOOTER, <<< 'EOD'
+	</channel>
+	</rss>
+EOD
+	);
+	set_kvp(B,RSS_ITEM, <<< 'EOD'
+	
+	<item>
+	<title>{{POSTTITLE}}</title>
+	<link>{{LINK}}</link>
+	<guid>{{LINK}}</guid>
+	<description><![CDATA[{{POSTCONTENT}}]]></description>
+	</item>
+
 EOD
 	);
 	set_kvp(B,'firstuse',1);
@@ -171,7 +202,7 @@ function tpl_set($t,$w,$r){
 	return str_replace('{{'.$w.'}}',$r,$t);	
 }
 function fail(){
-	echo tpl(T_HEADER,'SITENAME',SITENAME);
+	echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',T_HEADER);
 	echo tpl(T_FAIL);
 	echo tpl(T_FOOTER);
 	die();
@@ -239,7 +270,21 @@ function parsebb($t){
 	return $t;
 }
 //BLOGGY STUFF
-echo tpl(T_HEADER,'SITENAME',SITENAME);
+$p=get_index(D_POSTDATE);
+$sp=sizeof($p);
+$o=0;
+uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
+if(isset($_GET['rss'])){
+	$p=@array_slice($p,0,POSTSPERPAGE);
+	echo tpl(RSS_HEADER,'SITENAME',SITENAME,'SITEURL',PAGEHOME);
+	foreach($p as $m){
+		echo tpl(RSS_ITEM,'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'LINK',PAGEHOME.'?a='.$m[KEY]);
+	}
+	echo tpl(RSS_FOOTER);
+	die();
+	
+}
+echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',PAGEHOME);
 if(isset($_GET['login'])){
 	echo tpl(T_ADMINLOGIN);
 	echo tpl(T_FOOTER);
@@ -253,14 +298,10 @@ if(@$_SESSION['loggedin']===true){
 		echo tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','');
 	}
 }
-$p=get_index(D_POSTDATE);
-$sp=sizeof($p);
-$o=0;
 if(isset($_GET['a']) && record_exists($_GET['a'])){
 	$o=1;
 	$p=array(array(VALUE => get_kvp($_GET['a'],D_POSTDATE), KEY => $_GET['a']));
 }
-uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
 $p=@array_slice($p,$_GET['skip'],POSTSPERPAGE);
 foreach($p as $m){
 	echo tpl(T_POST,'POSTID',$m[KEY],'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'POSTDATE',date('d.m.Y H:i:s',$m[VALUE]));
@@ -270,7 +311,7 @@ foreach($p as $m){
 			$c=get_keys($r);
 			$c=array_unique(array_map(function($e){$e=explode('_',$e);return $e[0];},$c));
 			foreach($c as $d){
-				echo tpl(T_CMNT,'NAME',get_kvp($r,$d.'_'.D_NAME),'COMMENT',get_kvp($r,$d.'_'.D_COMMENT),'POSTID',$m[KEY],'CID',$d);
+				echo tpl(T_CMNT,'NAME',htmlspecialchars(get_kvp($r,$d.'_'.D_NAME)),'COMMENT',nl2br(htmlspecialchars(get_kvp($r,$d.'_'.D_COMMENT))),'POSTID',$m[KEY],'CID',$d);
 			}
 		}
 		echo tpl(T_CMNTFRM,'POSTID',$m[KEY]);
