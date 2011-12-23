@@ -318,7 +318,7 @@ foreach($p as $m){
 		break;
 	}
 }
-echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@$_GET['skip']);
+echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@(int)$_GET['skip']);
 echo tpl(T_FOOTER);
 echo memory_get_peak_usage()/1024;
 ?>
