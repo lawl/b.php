@@ -1,8 +1,10 @@
 <?php
-//CONSTANTS
+//CONFIG
 define('SITENAME','Yet another b.php blog');
 define('POSTSPERPAGE',5);
-//ONLY CHANGE THESE IF YOU KNOW WHAT YOU'RE DOING
+define('USERNAME','user');
+define('PASSWORD','pass');
+//ONLY CHANGE THESE IF YOU KNOW WHAT THE FUCK YOU'RE DOING
 define('DATAPATH','b/');
 define('KEY','key');
 define('VALUE','value');
@@ -15,12 +17,14 @@ define('T_CMNTFRM','template_commentform');
 define('T_CMNT','template_comment');
 define('T_FAIL','template_fail');
 define('T_NAV','template_nav');
+define('T_ADMINLOGIN','template_login');
 define('D_POSTTITLE','posttitle');
 define('D_POSTCONTENT','postcontent');
 define('D_POSTDATE','postdate');
 define('D_NAME','name');
 define('D_COMMENT','comment');
 define('D_POSTID','postid');
+session_start();
 //INSTALL STUFF
 if(get_kvp(B,'firstuse')===false){
 	if(!record_exists(''))if(!mkdir(DATAPATH))die('Can\'t create database. Create directory "'.DATAPATH.'" and make it writeable.');
@@ -55,6 +59,14 @@ EOD
 		<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
 		<input name="postid" type="hidden" value="{{POSTID}}" />
 		<input name="submitpost" type="submit" value="commit" />
+	</form>
+EOD
+	);
+	set_kvp(B,T_ADMINLOGIN, <<< 'EOD'
+	<form action="" method="post">
+		User <input name="username" type="text" /><br />
+		Password <input name="password" type="password" /><br />
+		<input name="login" type="submit" value="login" />
 	</form>
 EOD
 	);
@@ -165,31 +177,45 @@ function fail(){
 	die();
 }
 //ADMIN STUFF
-if(isset($_POST['submitpost'])){//POST ACTIONS
-	$r=0;
-	if(empty($_POST[D_POSTID])){
-		$r=create_record(uniqid());
-		set_kvp($r,D_POSTDATE,time());
-	}else{
-		if(!record_exists($_POST[D_POSTID]))fail();
-		$r=$_POST[D_POSTID];
+function rmain(){
+	header('Location: '.$_SERVER['SCRIPT_NAME']);
+	die();
+}
+if(isset($_POST['login'])){
+	if($_POST['username']===USERNAME && $_POST['password']===PASSWORD)$_SESSION['loggedin']=true;
+	rmain();
+}
+if(isset($_GET['logout'])){
+	session_destroy();
+	rmain();
+}
+if(@$_SESSION['loggedin']===true){
+	if(isset($_POST['submitpost'])){//POST ACTIONS
+		$r=0;
+		if(empty($_POST[D_POSTID])){
+			$r=create_record(uniqid());
+			set_kvp($r,D_POSTDATE,time());
+		}else{
+			if(!record_exists($_POST[D_POSTID]))fail();
+			$r=$_POST[D_POSTID];
+		}
+		set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
+		set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
+		create_index(D_POSTDATE,D_POSTDATE);
 	}
-	set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
-	set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
-	create_index(D_POSTDATE,D_POSTDATE);
+	if(isset($_GET['delete'])){
+		record_delete($_GET['delete']);
+		create_index(D_POSTDATE,D_POSTDATE);
+	}
+	if(isset($_GET['dc'])){
+		$cfl=$_GET['postid'].D_COMMENT;
+		if(!record_exists($cfl))fail();
+		delete_kvp($cfl,$_GET['cid'].'_'.D_NAME);
+		delete_kvp($cfl,$_GET['cid'].'_'.D_COMMENT);
+		delete_kvp($cfl,$_GET['cid'].'_'.D_POSTDATE);
+	}
+	if(isset($_GET['rbindex']))create_index(D_POSTDATE,D_POSTDATE);
 }
-if(isset($_GET['delete'])){
-	record_delete($_GET['delete']);
-	create_index(D_POSTDATE,D_POSTDATE);
-}
-if(isset($_GET['dc'])){
-	$cfl=$_GET['postid'].D_COMMENT;
-	if(!record_exists($cfl))fail();
-	delete_kvp($cfl,$_GET['cid'].'_'.D_NAME);
-	delete_kvp($cfl,$_GET['cid'].'_'.D_COMMENT);
-	delete_kvp($cfl,$_GET['cid'].'_'.D_POSTDATE);
-}
-if(isset($_GET['rbindex']))create_index(D_POSTDATE,D_POSTDATE);
 //ADD COMMENT
 if(isset($_POST['submitcmnt'])){
 	if(empty($_POST[D_COMMENT])||empty($_POST[D_NAME]))fail();
@@ -214,13 +240,19 @@ function parsebb($t){
 }
 //BLOGGY STUFF
 echo tpl(T_HEADER,'SITENAME',SITENAME);
-if(isset($_GET['edit'])){
-	if(!record_exists($_GET['edit']))fail();
-	$tpl=tpl(T_ADMIN,'POSTTITLE',get_kvp($_GET['edit'],D_POSTTITLE),'POSTCONTENT',get_kvp($_GET['edit'],D_POSTCONTENT),'POSTID',$_GET['edit']);
-}else{
-	$tpl=tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','');
+if(isset($_GET['login'])){
+	echo tpl(T_ADMINLOGIN);
+	echo tpl(T_FOOTER);
+	die();
 }
-echo tpl_set($tpl,'SITENAME',SITENAME);
+if(@$_SESSION['loggedin']===true){
+	if(isset($_GET['edit'])){
+		if(!record_exists($_GET['edit']))fail();
+		echo tpl(T_ADMIN,'POSTTITLE',get_kvp($_GET['edit'],D_POSTTITLE),'POSTCONTENT',get_kvp($_GET['edit'],D_POSTCONTENT),'POSTID',$_GET['edit']);
+	}else{
+		echo tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','');
+	}
+}
 $p=get_index(D_POSTDATE);
 $sp=sizeof($p);
 $o=0;
