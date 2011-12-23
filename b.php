@@ -1,6 +1,7 @@
 <?php
 //CONSTANTS
 define('SITENAME','Yet another b.php blog');
+define('POSTSPERPAGE',5);
 //ONLY CHANGE THESE IF YOU KNOW WHAT YOU'RE DOING
 define('DATAPATH','b/');
 define('KEY','key');
@@ -13,6 +14,7 @@ define('T_ADMIN','template_addpost');
 define('T_CMNTFRM','template_commentform');
 define('T_CMNT','template_comment');
 define('T_FAIL','template_fail');
+define('T_NAV','template_nav');
 define('D_POSTTITLE','posttitle');
 define('D_POSTCONTENT','postcontent');
 define('D_POSTDATE','postdate');
@@ -79,6 +81,10 @@ EOD
 	);
 	set_kvp(B,T_FAIL, <<< 'EOD'
 	SOMETHING FAILED! (probably you, now go back and figure it out)
+EOD
+	);
+	set_kvp(B,T_NAV, <<< 'EOD'
+	<a href="?skip={{NEXT}}">next page</a> <a href="?skip={{PREV}}">previous page</a>
 EOD
 	);
 	set_kvp(B,'firstuse',1);
@@ -166,6 +172,7 @@ if(isset($_POST['submitpost'])){//POST ACTIONS
 		set_kvp($r,D_POSTDATE,time());
 	}else{
 		if(!record_exists($_POST[D_POSTID]))fail();
+		$r=$_POST[D_POSTID];
 	}
 	set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
 	set_kvp($r,D_POSTCONTENT,$_POST[D_POSTCONTENT]);
@@ -215,14 +222,16 @@ if(isset($_GET['edit'])){
 }
 echo tpl_set($tpl,'SITENAME',SITENAME);
 $p=get_index(D_POSTDATE);
+$sp=sizeof($p);
 $o=0;
 if(isset($_GET['a']) && record_exists($_GET['a'])){
 	$o=1;
 	$p=array(array(VALUE => get_kvp($_GET['a'],D_POSTDATE), KEY => $_GET['a']));
 }
 uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
+$p=@array_slice($p,$_GET['skip'],POSTSPERPAGE);
 foreach($p as $m){
-	echo tpl(T_POST,'POSTID',$m[KEY],'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'POSTDATE',date('d.m.Y',$m[VALUE]));
+	echo tpl(T_POST,'POSTID',$m[KEY],'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'POSTDATE',date('d.m.Y H:i:s',$m[VALUE]));
 	if($o){
 		$r=$m[KEY].D_COMMENT;
 		if(record_exists($r)){
@@ -236,6 +245,7 @@ foreach($p as $m){
 		break;
 	}
 }
+echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@$_GET['skip']);
 echo tpl(T_FOOTER);
 echo memory_get_peak_usage()/1024;
 ?>
