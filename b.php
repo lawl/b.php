@@ -1,33 +1,33 @@
 <?php
 //CONFIG
-define('SITENAME','Yet another b.php blog');
-define('PAGEHOME','http://localhost/b/b.php');
-define('POSTSPERPAGE',5);
-define('USERNAME','user');
-define('PASSWORD','pass');
+const SITENAME='Yet another b.php blog';
+const PAGEHOME='http://localhost/b/b.php';
+const POSTSPERPAGE=5;
+const USERNAME='user';
+const PASSWORD='pass';
 //ONLY CHANGE THESE IF YOU KNOW WHAT THE FUCK YOU'RE DOING
-define('DATAPATH','b/');
-define('KEY','key');
-define('VALUE','value');
-define('B','__b');
-define('T_HEADER','template_header');
-define('T_FOOTER','template_footer');
-define('T_POST','template_post');
-define('T_ADMIN','template_addpost');
-define('T_CMNTFRM','template_commentform');
-define('T_CMNT','template_comment');
-define('T_FAIL','template_fail');
-define('T_NAV','template_nav');
-define('RSS_FOOTER','rss_footer');
-define('RSS_HEADER','rss_header');
-define('RSS_ITEM','rss_item');
-define('T_ADMINLOGIN','template_login');
-define('D_POSTTITLE','posttitle');
-define('D_POSTCONTENT','postcontent');
-define('D_POSTDATE','postdate');
-define('D_NAME','name');
-define('D_COMMENT','comment');
-define('D_POSTID','postid');
+const DATAPATH='b/';
+const KEY='key';
+const VALUE='value';
+const B='__b';
+const T_HEADER='template_header';
+const T_FOOTER='template_footer';
+const T_POST='template_post';
+const T_ADMIN='template_addpost';
+const T_CMNTFRM='template_commentform';
+const T_CMNT='template_comment';
+const T_FAIL='template_fail';
+const T_NAV='template_nav';
+const RSS_FOOTER='rss_footer';
+const RSS_HEADER='rss_header';
+const RSS_ITEM='rss_item';
+const T_ADMINLOGIN='template_login';
+const D_POSTTITLE='posttitle';
+const D_POSTCONTENT='postcontent';
+const D_POSTDATE='postdate';
+const D_NAME='name';
+const D_COMMENT='comment';
+const D_POSTID='postid';
 session_start();
 //INSTALL STUFF
 if(get_kvp(B,'firstuse')===false){
