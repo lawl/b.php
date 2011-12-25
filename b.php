@@ -38,19 +38,21 @@ if(get_kvp(B,'firstuse')===false){
 <!DOCTYPE html>
 <meta charset="utf-8" />
 <style type="text/css">
-	body{margin:auto;width:600px;color:black;font-family:sans-serif;background:#eee;}
-	.post{margin:10px 0px;padding:10px 5px;border:1px solid #ccc;}
-	.meta{margin-bottom:5px;}
-	a{color: #333;}
+body{margin:auto;width:600px;color:black;font-family:sans-serif;background:#eee;}
+a{color: #333;}
+.post{margin:10px 0px;padding:10px 5px;border:1px solid #ccc;}
+.meta{margin-bottom:5px;}
+#title{font-size:200%;text-decoration:none;padding-bottom:20px;display:block;}
 </style>
 <title>{{SITENAME}}</title>
 <link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
-<a href="?login">login</a>
-<a href="?logout">logout</a>
+<a href="{{PAGEHOME}}" id="title">{{SITENAME}}</a>
 EOD
 	);
 	set_kvp(B,T_FOOTER, <<< 'EOD'
-	<div>KB used: {{USED}}</div>
+<div><a href="?login">login</a>
+<a href="?logout">logout</a>
+KB used: {{USED}}</div>
 EOD
 	);
 	set_kvp(B,T_POST, <<< 'EOD'
@@ -69,6 +71,7 @@ EOD
 	<input name="postid" type="hidden" value="{{POSTID}}" />
 	<input name="submitpost" type="submit" value="commit" />
 </form>
+<a href="?rbindex">rebuild index</a>
 </div>
 EOD
 	);
