@@ -35,13 +35,18 @@ if(get_kvp(B,'firstuse')===false){
 	create_record(B);
 	create_index(D_POSTDATE,D_POSTDATE);
 	set_kvp(B,T_HEADER, <<< 'EOD'
-	<!DOCTYPE html>
-	<meta charset="utf-8" />
-	<style type="text/css">
-		* { vertical-align: baseline; font-weight: inherit; font-family: inherit; font-style: inherit; font-size: 100%; border: 0; padding: 0; margin: 0; }
-	</style>
-	<title>{{SITENAME}}</title>
-	<link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<style type="text/css">
+	body{margin:auto;width:600px;color:black;font-family:sans-serif;background:#eee;}
+	.post{margin:10px 0px;padding:10px 5px;border:1px solid #ccc;}
+	.meta{margin-bottom:5px;}
+	a{color: #333;}
+</style>
+<title>{{SITENAME}}</title>
+<link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
+<a href="?login">login</a>
+<a href="?logout">logout</a>
 EOD
 	);
 	set_kvp(B,T_FOOTER, <<< 'EOD'
@@ -49,85 +54,83 @@ EOD
 EOD
 	);
 	set_kvp(B,T_POST, <<< 'EOD'
-	<hr />
-	<a href="?a={{POSTID}}"><b>{{POSTTITLE}}</b></a> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a> <a href="?delete={{POSTID}}">delete</a><br />
-	{{POSTCONTENT}}
-	<hr />
+<div class="post">
+<div class="meta"><a href="?a={{POSTID}}"><b>{{POSTTITLE}}</b></a> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a> <a href="?delete={{POSTID}}">delete</a></div>
+{{POSTCONTENT}}
+</div>
 EOD
 	);
 	set_kvp(B,T_ADMIN, <<< 'EOD'
-	<div>
-	<form action="{{SELF}}" method="post">
-		Title <input name="posttitle" type="text" value="{{POSTTITLE}}"><br />
-		Post<br />
-		<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
-		<input name="postid" type="hidden" value="{{POSTID}}" />
-		<input name="submitpost" type="submit" value="commit" />
-	</form>
-	</div>
+<div>
+<form action="{{SELF}}" method="post">
+	Title <input name="posttitle" type="text" value="{{POSTTITLE}}"><br />
+	Post<br />
+	<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
+	<input name="postid" type="hidden" value="{{POSTID}}" />
+	<input name="submitpost" type="submit" value="commit" />
+</form>
+</div>
 EOD
 	);
 	set_kvp(B,T_ADMINLOGIN, <<< 'EOD'
-	<form action="" method="post">
-		User <input name="username" type="text" /><br />
-		Password <input name="password" type="password" /><br />
-		<input name="login" type="submit" value="login" />
-	</form>
+<form action="" method="post">
+	User <input name="username" type="text" /><br />
+	Password <input name="password" type="password" /><br />
+	<input name="login" type="submit" value="login" />
+</form>
 EOD
 	);
 	set_kvp(B,T_CMNTFRM, <<< 'EOD'
-	<div>
-	<form action="" method="post">
-		Nick <input name="name" type="text" value="Anonymous"><br />
-		Comment<br />
-		<textarea name="comment" rows="10" cols="70"></textarea><br />
-		<input name="postid" type="hidden" value="{{POSTID}}" />
-		<input name="submitcmnt" type="submit" value="commit" />
-	</form>
+<div>
+<form action="" method="post">
+	Nick <input name="name" type="text" value="Anonymous"><br />
+	Comment<br />
+	<textarea name="comment" rows="10" cols="70"></textarea><br />
+	<input name="postid" type="hidden" value="{{POSTID}}" />
+	<input name="submitcmnt" type="submit" value="commit" />
+</form>
 EOD
 	);
 	set_kvp(B,T_CMNT, <<< 'EOD'
-	<hr />
-	<div>
-		<div>{{NAME}}</div>
-		<div>{{COMMENT}}</div>
-		<a href="?dc&postid={{POSTID}}&cid={{CID}}">delete</a>
-	</div>
-	<hr />
+<hr />
+<div>
+	<div>{{NAME}}</div>
+	<div>{{COMMENT}}</div>
+	<a href="?dc&postid={{POSTID}}&cid={{CID}}">delete</a>
+</div>
+<hr />
 EOD
 	);
 	set_kvp(B,T_FAIL, <<< 'EOD'
-	SOMETHING FAILED! (probably you, now go back and figure it out)
+SOMETHING FAILED! (probably you, now go back and figure it out)
 EOD
 	);
 	set_kvp(B,T_NAV, <<< 'EOD'
-	<a href="?skip={{NEXT}}">next page</a> <a href="?skip={{PREV}}">previous page</a>
+<a href="?skip={{NEXT}}">next page</a> <a href="?skip={{PREV}}">previous page</a>
 EOD
 	);
 	set_kvp(B,RSS_HEADER, <<< 'EOD'
 <?xml version="1.0" encoding="utf-8"?><rss version="2.0">
-	<channel>
-	<title>{{SITENAME}}</title>
-	<link>{{SITEURL}}</link>
-	<description>{{SITENAME}}</description>
-	<language>de</language>
+<channel>
+<title>{{SITENAME}}</title>
+<link>{{SITEURL}}</link>
+<description>{{SITENAME}}</description>
+<language>de</language>
 EOD
 	);
 	set_kvp(B,RSS_FOOTER, <<< 'EOD'
-	</channel>
-	</rss>
+</channel>
+</rss>
 EOD
 	);
 	set_kvp(B,RSS_ITEM, <<< 'EOD'
-	
-	<item>
-	<title>{{POSTTITLE}}</title>
-	<link>{{LINK}}</link>
-	<guid>{{LINK}}</guid>
-	<pubDate>{{DATE}}</pubDate>
-	<description><![CDATA[{{POSTCONTENT}}]]></description>
-	</item>
-
+<item>
+<title>{{POSTTITLE}}</title>
+<link>{{LINK}}</link>
+<guid>{{LINK}}</guid>
+<pubDate>{{DATE}}</pubDate>
+<description><![CDATA[{{POSTCONTENT}}]]></description>
+</item>
 EOD
 	);
 	set_kvp(B,'firstuse',1);
@@ -288,7 +291,6 @@ if(isset($_GET['rss'])){
 echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',PAGEHOME);
 if(isset($_GET['login'])){
 	echo tpl(T_ADMINLOGIN);
-	echo tpl(T_FOOTER);
 	die();
 }
 if(@$_SESSION['loggedin']===true){
@@ -320,5 +322,5 @@ foreach($p as $m){
 	}
 }
 echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@(int)$_GET['skip']);
-echo tpl(T_FOOTER,'USED',memory_get_usage()/1024);
+echo tpl(T_FOOTER,'USED',intval(memory_get_usage()/1024));
 ?>
