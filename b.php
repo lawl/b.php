@@ -125,6 +125,7 @@ EOD
 	<title>{{POSTTITLE}}</title>
 	<link>{{LINK}}</link>
 	<guid>{{LINK}}</guid>
+	<pubDate>{{DATE}}</pubDate>
 	<description><![CDATA[{{POSTCONTENT}}]]></description>
 	</item>
 
@@ -236,6 +237,7 @@ if(@$_SESSION['loggedin']===true){
 	}
 	if(isset($_GET['delete'])){
 		record_delete($_GET['delete']);
+		record_delete($_GET['delete'].D_COMMENT);
 		create_index(D_POSTDATE,D_POSTDATE);
 	}
 	if(isset($_GET['dc'])){
@@ -278,7 +280,7 @@ if(isset($_GET['rss'])){
 	$p=@array_slice($p,0,POSTSPERPAGE);
 	echo tpl(RSS_HEADER,'SITENAME',SITENAME,'SITEURL',PAGEHOME);
 	foreach($p as $m){
-		echo tpl(RSS_ITEM,'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'LINK',PAGEHOME.'?a='.$m[KEY]);
+		echo tpl(RSS_ITEM,'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'LINK',PAGEHOME.'?a='.$m[KEY],'DATE',date('D, d M Y H:i:s T',$m[VALUE]));
 	}
 	echo tpl(RSS_FOOTER);
 	die();
@@ -320,5 +322,5 @@ foreach($p as $m){
 }
 echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@(int)$_GET['skip']);
 echo tpl(T_FOOTER);
-echo memory_get_peak_usage()/1024;
+echo memory_get_usage()/1024;
 ?>
