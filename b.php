@@ -36,18 +36,16 @@ if(get_kvp(B,'firstuse')===false){
 	create_index(D_POSTDATE,D_POSTDATE);
 	set_kvp(B,T_HEADER, <<< 'EOD'
 	<!DOCTYPE html>
-	<html>
-	<head>
 	<meta charset="utf-8" />
+	<style type="text/css">
+		* { vertical-align: baseline; font-weight: inherit; font-family: inherit; font-style: inherit; font-size: 100%; border: 0; padding: 0; margin: 0; }
+	</style>
 	<title>{{SITENAME}}</title>
 	<link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
-	</head>
-	<body>
 EOD
 	);
 	set_kvp(B,T_FOOTER, <<< 'EOD'
-	</body>
-	</html>
+	<div>KB used: {{USED}}</div>
 EOD
 	);
 	set_kvp(B,T_POST, <<< 'EOD'
@@ -59,13 +57,14 @@ EOD
 	);
 	set_kvp(B,T_ADMIN, <<< 'EOD'
 	<div>
-	<form action="" method="post">
+	<form action="{{SELF}}" method="post">
 		Title <input name="posttitle" type="text" value="{{POSTTITLE}}"><br />
 		Post<br />
 		<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
 		<input name="postid" type="hidden" value="{{POSTID}}" />
 		<input name="submitpost" type="submit" value="commit" />
 	</form>
+	</div>
 EOD
 	);
 	set_kvp(B,T_ADMINLOGIN, <<< 'EOD'
@@ -295,9 +294,9 @@ if(isset($_GET['login'])){
 if(@$_SESSION['loggedin']===true){
 	if(isset($_GET['edit'])){
 		if(!record_exists($_GET['edit']))fail();
-		echo tpl(T_ADMIN,'POSTTITLE',get_kvp($_GET['edit'],D_POSTTITLE),'POSTCONTENT',get_kvp($_GET['edit'],D_POSTCONTENT),'POSTID',$_GET['edit']);
+		echo tpl(T_ADMIN,'POSTTITLE',get_kvp($_GET['edit'],D_POSTTITLE),'POSTCONTENT',get_kvp($_GET['edit'],D_POSTCONTENT),'POSTID',$_GET['edit'],'SELF',$_SERVER['SCRIPT_NAME']);
 	}else{
-		echo tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','');
+		echo tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','','SELF',$_SERVER['SCRIPT_NAME']);
 	}
 }
 if(isset($_GET['a']) && record_exists($_GET['a'])){
@@ -321,6 +320,5 @@ foreach($p as $m){
 	}
 }
 echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@(int)$_GET['skip']);
-echo tpl(T_FOOTER);
-echo memory_get_usage()/1024;
+echo tpl(T_FOOTER,'USED',memory_get_usage()/1024);
 ?>
