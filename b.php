@@ -47,6 +47,9 @@ a{color: #333;}
 <title>{{SITENAME}}</title>
 <link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
 <a href="{{PAGEHOME}}" id="title">{{SITENAME}}</a>
+<form action="{{SELF}}" method="get">
+<input type="text" name="s" /><input type="submit" value="search" />
+</form>
 EOD
 	);
 	set_kvp(B,T_FOOTER, <<< 'EOD'
@@ -208,7 +211,7 @@ function tpl_set($t,$w,$r){
 	return str_replace('{{'.$w.'}}',$r,$t);	
 }
 function fail(){
-	echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',T_HEADER);
+	echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',T_HEADER,'SELF',$_SERVER['SCRIPT_NAME']);
 	echo tpl(T_FAIL);
 	echo tpl(T_FOOTER);
 	die();
@@ -278,12 +281,28 @@ function parsebb($t){
 }
 //BLOGGY STUFF
 $p=get_index(D_POSTDATE);
+//SEARCH
+if(isset($_GET['s'])){
+	$s=explode(' ',$_GET['s']);
+	foreach($p as $k => $m){
+		$t=strtolower(get_kvp($m[KEY],D_POSTTITLE));
+		$c=strtolower(parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))));
+		$f=true;
+		for($i=0;$i<sizeof($s);$i++){
+			if(strpos($c,strtolower($s[$i]))===false && strpos($t,strtolower($s[$i]))===false){
+				$f=false;
+				break;
+			}
+		}
+		if(!$f)unset($p[$k]);
+	}
+}
 $sp=sizeof($p);
 $o=0;
 uasort($p,function($a,$b){if($a[VALUE]==$b[VALUE])return 0;return $a[VALUE]<$b[VALUE];});
 if(isset($_GET['rss'])){
 	$p=@array_slice($p,0,POSTSPERPAGE);
-	echo tpl(RSS_HEADER,'SITENAME',SITENAME,'SITEURL',PAGEHOME);
+	echo tpl(RSS_HEADER,'SITENAME',SITENAME,'SITEURL',PAGEHOME,'SELF',$_SERVER['SCRIPT_NAME']);
 	foreach($p as $m){
 		echo tpl(RSS_ITEM,'POSTTITLE',get_kvp($m[KEY],D_POSTTITLE),'POSTCONTENT',parsebb(nl2br(get_kvp($m[KEY],D_POSTCONTENT))),'LINK',PAGEHOME.'?a='.$m[KEY],'DATE',date('D, d M Y H:i:s T',$m[VALUE]));
 	}
@@ -291,7 +310,7 @@ if(isset($_GET['rss'])){
 	die();
 	
 }
-echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',PAGEHOME);
+echo tpl(T_HEADER,'SITENAME',SITENAME,'PAGEHOME',PAGEHOME,'SELF',$_SERVER['SCRIPT_NAME']);
 if(isset($_GET['login'])){
 	echo tpl(T_ADMINLOGIN);
 	die();
@@ -324,6 +343,6 @@ foreach($p as $m){
 		break;
 	}
 }
-echo tpl(T_NAV,'NEXT',@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0,'PREV',@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@(int)$_GET['skip']);
+echo tpl(T_NAV,'NEXT',(@$_GET['skip']>0?@$_GET['skip']-POSTSPERPAGE:0).'&s='.@urlencode($_GET['s']),'PREV',(@$_GET['skip']+POSTSPERPAGE<$sp?@$_GET['skip']+POSTSPERPAGE:@(int)$_GET['skip']).'&s='.@urlencode($_GET['s']));
 echo tpl(T_FOOTER,'USED',intval(memory_get_usage()/1024));
 ?>
