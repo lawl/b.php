@@ -282,7 +282,7 @@ function parsebb($t){
 //BLOGGY STUFF
 $p=get_index(D_POSTDATE);
 //SEARCH
-if(isset($_GET['s'])){
+if(!empty($_GET['s'])){
 	$s=explode(' ',$_GET['s']);
 	foreach($p as $k => $m){
 		$t=strtolower(get_kvp($m[KEY],D_POSTTITLE));
