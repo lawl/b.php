@@ -270,9 +270,9 @@ if(isset($_POST['submitcmnt'])){
 }
 //BB STUFF
 function parsebb($t){
-	$t = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1<\/b>',$t);
-	$t = preg_replace('/\[center\](.+?)\[\/center\]/is','<center>\1<\/center>',$t);
-	$t = preg_replace('/\[i\](.+?)\[\/i\]/is','<i>\1<\/i>',$t);
+	$t = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1</b>',$t);
+	$t = preg_replace('/\[center\](.+?)\[\/center\]/is','<center>\1</center>',$t);
+	$t = preg_replace('/\[i\](.+?)\[\/i\]/is','<i>\1</i>',$t);
 	$t = preg_replace('/\[img\](.+?)\[\/img\]/is','<img src="\1" alt="\1" />',$t);
 	$t = preg_replace('/\[url\=(.+?)\](.+?)\[\/url\]/is','<a href="\1">\2</a>',$t);
 	$t = preg_replace('/\[url\](.+?)\[\/url\]/is','<a href="\1">\1</a>',$t);
