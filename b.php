@@ -1,33 +1,5 @@
 <?php
-//CONFIG
-const SITENAME='Yet another b.php blog';
-const PAGEHOME='http://localhost/b/b.php';
-const POSTSPERPAGE=5;
-const USERNAME='user';
-const PASSWORD='pass';
-//ONLY CHANGE THESE IF YOU KNOW WHAT THE FUCK YOU'RE DOING
-const DATAPATH='b/';
-const KEY='key';
-const VALUE='value';
-const B='__b';
-const T_HEADER='template_header';
-const T_FOOTER='template_footer';
-const T_POST='template_post';
-const T_ADMIN='template_addpost';
-const T_CMNTFRM='template_commentform';
-const T_CMNT='template_comment';
-const T_FAIL='template_fail';
-const T_NAV='template_nav';
-const RSS_FOOTER='rss_footer';
-const RSS_HEADER='rss_header';
-const RSS_ITEM='rss_item';
-const T_ADMINLOGIN='template_login';
-const D_POSTTITLE='posttitle';
-const D_POSTCONTENT='postcontent';
-const D_POSTDATE='postdate';
-const D_NAME='name';
-const D_COMMENT='comment';
-const D_POSTID='postid';
+require_once('config.php');
 session_start();
 //INSTALL STUFF
 if(get_kvp(B,'firstuse')===false){
@@ -35,34 +7,57 @@ if(get_kvp(B,'firstuse')===false){
 	create_record(B);
 	create_index(D_POSTDATE,D_POSTDATE);
 	set_kvp(B,T_HEADER, <<< 'EOD'
-<!DOCTYPE html>
-<meta charset="utf-8" />
-<style type="text/css">
-body{margin:auto;width:600px;color:black;font-family:sans-serif;background:#eee;}
-a{color: #333;}
-.post{margin:10px 0px;padding:10px 5px;border:1px solid #ccc;}
-.meta{margin-bottom:5px;}
-#title{font-size:200%;text-decoration:none;padding-bottom:20px;display:block;}
-</style>
-<title>{{SITENAME}}</title>
-<link rel="alternate" type="application/rss+xml" title="{{SITENAME}}" href="{{PAGEHOME}}?rss" />
-<a href="{{PAGEHOME}}" id="title">{{SITENAME}}</a>
-<form action="{{SELF}}" method="get">
-<input type="text" name="s" /><input type="submit" value="search" />
-</form>
+   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>{{SITENAME}}</title>
+	<link href="css/fonts.css"
+		type="text/css" />
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+	<link href="css/blog.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<div>
+		<div class="container">
+			<div class="blog-head">
+				<a class="blog-homelink" href="{{PAGEHOME}}">
+					<h1>{{SITENAME}}</h1>
+				</a>
+				<ul class="blog-head-links">
+					<li><a href="#">coding</a></li>
+					<li><a href="#">yo mamma</a></li>
+				</ul>
+				<form class="form-search blog-search" method="get" action="{{SELF}}">
+				<input type="text" name="s" class="input-medium search-query" />
+				</form>
+			</div>
+			
 EOD
 	);
 	set_kvp(B,T_FOOTER, <<< 'EOD'
+   
+   		</div>
+	</div>
+</body>
+</html>
+<!--
 <div><a href="?login">login</a>
 <a href="?logout">logout</a>
-KB used: {{USED}}</div>
+KB used: {{USED}}</div>-->
 EOD
 	);
 	set_kvp(B,T_POST, <<< 'EOD'
-<div class="post">
-<div class="meta"><a href="?a={{POSTID}}"><b>{{POSTTITLE}}</b></a> <i>{{POSTDATE}}</i> <a href="?edit={{POSTID}}">edit</a> <a href="?delete={{POSTID}}">delete</a></div>
-{{POSTCONTENT}}
-</div>
+   			<div class="blog-post">
+				<a href="?a={{POSTID}}"><h2>{{POSTTITLE}}</h2></a>
+				<ul class="blog-post-infos">
+					<li><i class="icon-calendar"></i>{{POSTDATE}} </li>
+					<li><i class="icon-tags"></i><a href="#">dum</a>, <a href="#">dummer</a>, <a href="#">
+						folldum</a> </li>
+				</ul>
+				<div class="blog-post-content">
+					{{POSTCONTENT}}
+				</div>
+			</div>
 EOD
 	);
 	set_kvp(B,T_ADMIN, <<< 'EOD'
@@ -98,13 +93,14 @@ EOD
 EOD
 	);
 	set_kvp(B,T_CMNT, <<< 'EOD'
-<hr />
-<div>
-	<div>{{NAME}}</div>
-	<div>{{COMMENT}}</div>
-	<a href="?dc&postid={{POSTID}}&cid={{CID}}">delete</a>
-</div>
-<hr />
+   
+   <div class="well">
+							<span class="blog-post-comment-author">{{NAME}}</span>
+							<span class="blog-post-comment-date"></span>
+							<div class="blog-post-comment-content">
+								{{COMMENT}}
+							</div>
+							</div>
 EOD
 	);
 	set_kvp(B,T_FAIL, <<< 'EOD'
@@ -112,7 +108,15 @@ SOMETHING FAILED! (probably you, now go back and figure it out)
 EOD
 	);
 	set_kvp(B,T_NAV, <<< 'EOD'
-<a href="?skip={{NEXT}}">next page</a> <a href="?skip={{PREV}}">previous page</a>
+   
+   <ul class="pager">
+  <li class="previous">
+    <a href="?skip={{NEXT}}">&larr; Older</a>
+  </li>
+  <li class="next">
+    <a href="?skip={{PREV}}">Newer &rarr;</a>
+  </li>
+</ul>
 EOD
 	);
 	set_kvp(B,RSS_HEADER, <<< 'EOD'
@@ -259,6 +263,7 @@ if(@$_SESSION['loggedin']===true){
 }
 //ADD COMMENT
 if(isset($_POST['submitcmnt'])){
+	if($_REQUEST['me'] !== 'IchBinHomoseksuell') fail();
 	if(empty($_POST[D_COMMENT])||empty($_POST[D_NAME]))fail();
 	$r=$_POST[D_POSTID].D_COMMENT;
 	if(!record_exists($_POST[D_POSTID]))fail();
