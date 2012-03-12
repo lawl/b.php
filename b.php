@@ -1,4 +1,7 @@
 <?php
+
+error_reporting(E_ALL | E_STRICT);
+
 require_once('config.php');
 session_start();
 //INSTALL STUFF
@@ -6,143 +9,6 @@ if(get_kvp(B,'firstuse')===false){
 	if(!record_exists(''))if(!mkdir(DATAPATH))die('Can\'t create database. Create directory "'.DATAPATH.'" and make it writeable.');
 	create_record(B);
 	create_index(D_POSTDATE,D_POSTDATE);
-	set_kvp(B,T_HEADER, <<< 'EOD'
-   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<title>{{SITENAME}}</title>
-	<link href="css/fonts.css"
-		type="text/css" />
-	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-	<link href="css/blog.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-	<div>
-		<div class="container">
-			<div class="blog-head">
-				<a class="blog-homelink" href="{{PAGEHOME}}">
-					<h1>{{SITENAME}}</h1>
-				</a>
-				<ul class="blog-head-links">
-					<li><a href="#">coding</a></li>
-					<li><a href="#">yo mamma</a></li>
-				</ul>
-				<form class="form-search blog-search" method="get" action="{{SELF}}">
-				<input type="text" name="s" class="input-medium search-query" />
-				</form>
-			</div>
-			
-EOD
-	);
-	set_kvp(B,T_FOOTER, <<< 'EOD'
-   
-   		</div>
-	</div>
-</body>
-</html>
-<!--
-<div><a href="?login">login</a>
-<a href="?logout">logout</a>
-KB used: {{USED}}</div>-->
-EOD
-	);
-	set_kvp(B,T_POST, <<< 'EOD'
-   			<div class="blog-post">
-				<a href="?a={{POSTID}}"><h2>{{POSTTITLE}}</h2></a>
-				<ul class="blog-post-infos">
-					<li><i class="icon-calendar"></i>{{POSTDATE}} </li>
-					<li><i class="icon-tags"></i><a href="#">dum</a>, <a href="#">dummer</a>, <a href="#">
-						folldum</a> </li>
-				</ul>
-				<div class="blog-post-content">
-					{{POSTCONTENT}}
-				</div>
-			</div>
-EOD
-	);
-	set_kvp(B,T_ADMIN, <<< 'EOD'
-<div>
-<form action="{{SELF}}" method="post">
-	Title <input name="posttitle" type="text" value="{{POSTTITLE}}"><br />
-	Post<br />
-	<textarea name="postcontent" rows="10" cols="70">{{POSTCONTENT}}</textarea><br />
-	<input name="postid" type="hidden" value="{{POSTID}}" />
-	<input name="submitpost" type="submit" value="commit" />
-</form>
-<a href="?rbindex">rebuild index</a>
-</div>
-EOD
-	);
-	set_kvp(B,T_ADMINLOGIN, <<< 'EOD'
-<form action="" method="post">
-	User <input name="username" type="text" /><br />
-	Password <input name="password" type="password" /><br />
-	<input name="login" type="submit" value="login" />
-</form>
-EOD
-	);
-	set_kvp(B,T_CMNTFRM, <<< 'EOD'
-<div>
-<form action="" method="post">
-	Nick <input name="name" type="text" value="Anonymous"><br />
-	Comment<br />
-	<textarea name="comment" rows="10" cols="70"></textarea><br />
-	<input name="postid" type="hidden" value="{{POSTID}}" />
-	<input name="submitcmnt" type="submit" value="commit" />
-</form>
-EOD
-	);
-	set_kvp(B,T_CMNT, <<< 'EOD'
-   
-   <div class="well">
-							<span class="blog-post-comment-author">{{NAME}}</span>
-							<span class="blog-post-comment-date"></span>
-							<div class="blog-post-comment-content">
-								{{COMMENT}}
-							</div>
-							</div>
-EOD
-	);
-	set_kvp(B,T_FAIL, <<< 'EOD'
-SOMETHING FAILED! (probably you, now go back and figure it out)
-EOD
-	);
-	set_kvp(B,T_NAV, <<< 'EOD'
-   
-   <ul class="pager">
-  <li class="previous">
-    <a href="?skip={{NEXT}}">&larr; Older</a>
-  </li>
-  <li class="next">
-    <a href="?skip={{PREV}}">Newer &rarr;</a>
-  </li>
-</ul>
-EOD
-	);
-	set_kvp(B,RSS_HEADER, <<< 'EOD'
-<?xml version="1.0" encoding="utf-8"?><rss version="2.0">
-<channel>
-<title>{{SITENAME}}</title>
-<link>{{SITEURL}}</link>
-<description>{{SITENAME}}</description>
-<language>de</language>
-EOD
-	);
-	set_kvp(B,RSS_FOOTER, <<< 'EOD'
-</channel>
-</rss>
-EOD
-	);
-	set_kvp(B,RSS_ITEM, <<< 'EOD'
-<item>
-<title>{{POSTTITLE}}</title>
-<link>{{LINK}}</link>
-<guid>{{LINK}}</guid>
-<pubDate>{{DATE}}</pubDate>
-<description><![CDATA[{{POSTCONTENT}}]]></description>
-</item>
-EOD
-	);
 	set_kvp(B,'firstuse',1);
 }
 //DB STUFF
@@ -153,6 +19,10 @@ function create_record($r){
 }
 function set_kvp($r,$k,$v){
 	file_put_contents(DATAPATH.sanitize_key($r).'/'.sanitize_key($k),$v);
+}
+function get_tpl($tpl) {
+	$p=DATAPATH.'template/'.$tpl;
+	return file_exists($p)?file_get_contents($p):false;
 }
 function get_kvp($r,$k){
 	$p=DATAPATH.sanitize_key($r).'/'.sanitize_key($k);
@@ -205,7 +75,7 @@ function get_index($n){
 function tpl(){
 	$f=func_get_args();
 	$n=sizeof($f)-1;
-	$t=get_kvp(B,$f[0]);
+	$t=get_tpl($f[0]);
 	for($i=1;$i<$n;$i+=2){
 		$t=str_replace('{{'.$f[$i].'}}',$f[$i+1],$t);
 	}
