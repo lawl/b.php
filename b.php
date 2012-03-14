@@ -1,39 +1,48 @@
 <?php
-
-error_reporting(E_ALL | E_STRICT);
-
-require_once('config.php');
 session_start();
-//INSTALL STUFF
+require_once('config.php');
+if(DEBUG)error_reporting(E_ALL | E_STRICT);
+
 if(get_kvp(B,'firstuse')===false){
 	if(!record_exists(''))if(!mkdir(DATAPATH))die('Can\'t create database. Create directory "'.DATAPATH.'" and make it writeable.');
 	create_record(B);
 	create_index(D_POSTDATE,D_POSTDATE);
 	set_kvp(B,'firstuse',1);
 }
-//DB STUFF
+function pathcombine($a,$b) {
+	return join(DIRECTORY_SEPARATOR, array(trim($a, DIRECTORY_SEPARATOR), trim($b, DIRECTORY_SEPARATOR)));
+}
+function cmb() {
+	$r='';
+	$f=func_get_args();
+	$n=sizeof($f);
+	for($i=0;$i<$n;$i++){
+		$r= pathcombine($r, $f[$i]);		
+	}
+	return $r;
+}
 function create_record($r){
 	$r=sanitize_key($r);
 	if(!record_exists($r))mkdir(DATAPATH.$r);
 	return $r;
 }
 function set_kvp($r,$k,$v){
-	file_put_contents(DATAPATH.sanitize_key($r).'/'.sanitize_key($k),$v);
+	file_put_contents(cmb(DATAPATH,sanitize_key($r), sanitize_key($k)),$v);
 }
 function get_tpl($tpl) {
-	$p=DATAPATH.'template/'.$tpl;
+	$p=cmb(TEMPLATEDIR,TEMPLATE,$tpl);
 	return file_exists($p)?file_get_contents($p):false;
 }
 function get_kvp($r,$k){
-	$p=DATAPATH.sanitize_key($r).'/'.sanitize_key($k);
+	$p=cmb(DATAPATH,sanitize_key($r),sanitize_key($k));
 	return file_exists($p)?file_get_contents($p):false;
 }
 function delete_kvp($r,$kvp){
-	unlink(DATAPATH.sanitize_key($r).'/'.sanitize_key($kvp));
+	unlink(cmb(DATAPATH,sanitize_key($r),sanitize_key($kvp)));
 }
 function record_exists($p){
 	$p=sanitize_key($p);
-	return file_exists(DATAPATH.$p)&&is_dir(DATAPATH.$p);
+	return file_exists(cmb(DATAPATH,$p))&&is_dir(cmb(DATAPATH,$p));
 }
 function record_delete($r){
 	$r=sanitize_key($r);
@@ -41,11 +50,11 @@ function record_delete($r){
 		$h=opendir(DATAPATH.$r);
 		for($i=0;($e=readdir($h))!==false;$i++){
 			if ($e!='.'&&$e!='..'){
-				unlink(DATAPATH.$r.'/'.$e);
+				unlink(cmb(DATAPATH,$r,$e));
 			}
 		}
 		closedir($h);
-		rmdir(DATAPATH.$r);
+		rmdir(cmb(DATAPATH,$r));
 	}
 }
 function get_keys($r){
@@ -71,7 +80,6 @@ function create_index($n,$k){
 function get_index($n){
 	return unserialize(get_kvp(B,'index_'.$n));
 }
-//TEMPLATE STUFF
 function tpl(){
 	$f=func_get_args();
 	$n=sizeof($f)-1;
@@ -90,13 +98,13 @@ function fail(){
 	echo tpl(T_FOOTER);
 	die();
 }
-//ADMIN STUFF
 function rmain(){
 	header('Location: '.$_SERVER['SCRIPT_NAME']);
 	die();
 }
 if(isset($_POST['login'])){
-	if($_POST['username']===USERNAME && $_POST['password']===PASSWORD)$_SESSION['loggedin']=true;
+	if($_POST['username']===USERNAME && $_POST['password']===PASSWORD)
+		$_SESSION['loggedin']=true;
 	rmain();
 }
 if(isset($_GET['logout'])){
@@ -104,13 +112,14 @@ if(isset($_GET['logout'])){
 	rmain();
 }
 if(@$_SESSION['loggedin']===true){
-	if(isset($_POST['submitpost'])){//POST ACTIONS
+	if(isset($_POST['submitpost'])){
 		$r=0;
 		if(empty($_POST[D_POSTID])){
 			$r=create_record(uniqid());
 			set_kvp($r,D_POSTDATE,time());
 		}else{
-			if(!record_exists($_POST[D_POSTID]))fail();
+			if(!record_exists($_POST[D_POSTID]))
+				fail();
 			$r=$_POST[D_POSTID];
 		}
 		set_kvp($r,D_POSTTITLE,$_POST[D_POSTTITLE]);
@@ -131,19 +140,21 @@ if(@$_SESSION['loggedin']===true){
 	}
 	if(isset($_GET['rbindex']))create_index(D_POSTDATE,D_POSTDATE);
 }
-//ADD COMMENT
 if(isset($_POST['submitcmnt'])){
-	if($_REQUEST['me'] !== 'IchBinHomoseksuell') fail();
-	if(empty($_POST[D_COMMENT])||empty($_POST[D_NAME]))fail();
+	if($_REQUEST['me'] !== 'IchBinHomoseksuell')
+		fail();
+	if(empty($_POST[D_COMMENT])||empty($_POST[D_NAME]))
+		fail();
 	$r=$_POST[D_POSTID].D_COMMENT;
-	if(!record_exists($_POST[D_POSTID]))fail();
-	if(!record_exists($r))create_record($r);
+	if(!record_exists($_POST[D_POSTID]))
+		fail();
+	if(!record_exists($r))
+		create_record($r);
 	$u=uniqid();
 	set_kvp($r,$u.'_'.D_POSTDATE,time());
 	set_kvp($r,$u.'_'.D_NAME,$_POST[D_NAME]);
 	set_kvp($r,$u.'_'.D_COMMENT,$_POST[D_COMMENT]);
 }
-//BB STUFF
 function parsebb($t){
 	$t = preg_replace('/\[b\](.+?)\[\/b\]/is','<b>\1</b>',$t);
 	$t = preg_replace('/\[center\](.+?)\[\/center\]/is','<center>\1</center>',$t);
@@ -154,9 +165,7 @@ function parsebb($t){
 	$t = preg_replace('/\[code\](.+?)\[\/code\]/is','<pre>\1</pre>',$t);
 	return $t;
 }
-//BLOGGY STUFF
 $p=get_index(D_POSTDATE);
-//SEARCH
 if(!empty($_GET['s'])){
 	$s=explode(' ',$_GET['s']);
 	foreach($p as $k => $m){
@@ -192,7 +201,8 @@ if(isset($_GET['login'])){
 }
 if(@$_SESSION['loggedin']===true){
 	if(isset($_GET['edit'])){
-		if(!record_exists($_GET['edit']))fail();
+		if(!record_exists($_GET['edit']))
+			fail();
 		echo tpl(T_ADMIN,'POSTTITLE',get_kvp($_GET['edit'],D_POSTTITLE),'POSTCONTENT',get_kvp($_GET['edit'],D_POSTCONTENT),'POSTID',$_GET['edit'],'SELF',$_SERVER['SCRIPT_NAME']);
 	}else{
 		echo tpl(T_ADMIN,'POSTTITLE','','POSTCONTENT','','POSTID','','SELF',$_SERVER['SCRIPT_NAME']);

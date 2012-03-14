@@ -6,4 +6,3 @@
 	<input name="postid" type="hidden" value="{{POSTID}}" />
 	<input name="submitcmnt" type="submit" value="commit" />
 </form>
-</div>

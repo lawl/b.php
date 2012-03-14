@@ -1,0 +1,1 @@
+<a href="?skip={{NEXT}}">next page</a> <a href="?skip={{PREV}}">previous page</a>
