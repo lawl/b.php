@@ -23,7 +23,7 @@ function cmb() {
 }
 function create_record($r){
 	$r=sanitize_key($r);
-	if(!record_exists($r))mkdir(DATAPATH.$r);
+	if(!record_exists($r))mkdir(cmb(DATAPATH,$r));
 	return $r;
 }
 function set_kvp($r,$k,$v){
