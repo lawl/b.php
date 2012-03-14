@@ -141,8 +141,6 @@ if(@$_SESSION['loggedin']===true){
 	if(isset($_GET['rbindex']))create_index(D_POSTDATE,D_POSTDATE);
 }
 if(isset($_POST['submitcmnt'])){
-	if($_REQUEST['me'] !== 'IchBinHomoseksuell')
-		fail();
 	if(empty($_POST[D_COMMENT])||empty($_POST[D_NAME]))
 		fail();
 	$r=$_POST[D_POSTID].D_COMMENT;
