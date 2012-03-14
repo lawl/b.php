@@ -47,7 +47,7 @@ function record_exists($p){
 function record_delete($r){
 	$r=sanitize_key($r);
 	if(record_exists($r)){
-		$h=opendir(DATAPATH.$r);
+		$h=opendir(cmb(DATAPATH,$r));
 		for($i=0;($e=readdir($h))!==false;$i++){
 			if ($e!='.'&&$e!='..'){
 				unlink(cmb(DATAPATH,$r,$e));
